@@ -8,6 +8,7 @@ import com.arnabk.bgapp.service.GitaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -23,22 +24,26 @@ public class GitaServiceImpl implements GitaService {
 
     @Override
     public List<Chapter> listAllChapters() {
-        return chapterRepository.findByChapterNumberOrderByChapterNumber();
+        return !CollectionUtils.isEmpty(chapterRepository.findByChapterNumberOrderByChapterNumber()) ?
+                chapterRepository.findByChapterNumberOrderByChapterNumber() : null;
     }
 
     @Override
     public Chapter getChapterById(String chapterId) {
-        return chapterRepository.findByChapterId(chapterId);
+        return (chapterRepository.findByChapterId(chapterId) != null) ?
+                chapterRepository.findByChapterId(chapterId): null;
     }
 
     @Override
     public List<Sloka> listSlokaByChapterId(String chapterId) {
-        return slokRepository.findByChapterIdOrderByVerseNo(chapterId);
+        return !CollectionUtils.isEmpty(slokRepository.findByChapterIdOrderByVerseNo(chapterId)) ?
+                slokRepository.findByChapterIdOrderByVerseNo(chapterId): null;
     }
 
     @Override
     public Sloka findSlokById(String slokId) {
-        return slokRepository.findBySlokaId(slokId);
+        return (slokRepository.findBySlokaId(slokId) != null) ?
+                slokRepository.findBySlokaId(slokId): null;
     }
 
 }

@@ -47,23 +47,23 @@ public class RegistrationController {
 
             return ResponseEntity.ok("Registration Successful");
         } else {
-            return ResponseEntity.ok("User already registered");
+            return ResponseEntity.badRequest().body("User already registered");
         }
     }
 
     @GetMapping("/verifyRegistration")
-    public String verifyRegistration(@RequestParam(value = "token", required = true) String token) {
+    public ResponseEntity<String> verifyRegistration(@RequestParam(value = "token", required = true) String token) {
         String result = userService.validateRegistrationToken(token);
 
         if (result.equalsIgnoreCase("valid")) {
-            return "User Verified successfully";
+            return ResponseEntity.ok("User Verified successfully");
         }
 
-        return "Bad User";
+        return ResponseEntity.badRequest().body("Bad User");
     }
 
     @GetMapping("/resendToken")
-    public String resendVerificationToken(@RequestParam(value = "token", required = true) String oldToken,
+    public ResponseEntity<String> resendVerificationToken(@RequestParam(value = "token", required = true) String oldToken,
                                           HttpServletRequest request) {
         User user = userService.findUserByToken(oldToken);
 
@@ -73,11 +73,11 @@ public class RegistrationController {
 
             resendVerificationTokenMail(user, applicationUrl(request), verificationToken);
 
-            return "Verification link sent";
+            return ResponseEntity.ok("Verification link sent");
         } else if (user != null && user.isEnabled()) {
-            return "User is already verified";
+            return ResponseEntity.badRequest().body("User is already verified");
         } else {
-            return "Please provide a valid token";
+            return ResponseEntity.badRequest().body("Please provide a valid token");
         }
     }
 
@@ -102,7 +102,7 @@ public class RegistrationController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
         try {
             User user = userService.verifyExistingUser(request.getEmail());
             if (user != null) {
@@ -112,11 +112,10 @@ public class RegistrationController {
                     return ResponseEntity.ok(new AuthenticationResponse("Please verify user email"));
                 }
             } else {
-                return ResponseEntity.ok(new
-                        AuthenticationResponse("Username or password not valid"));
+                return ResponseEntity.badRequest().body("Username or password not valid");
             }
         } catch (Exception e) {
-            return ResponseEntity.ok(new AuthenticationResponse("Username or password not valid"));
+            return ResponseEntity.badRequest().body("Username or password not valid");
         }
 
     }

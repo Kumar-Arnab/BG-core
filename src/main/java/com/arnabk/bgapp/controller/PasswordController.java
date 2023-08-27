@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -26,8 +27,8 @@ public class PasswordController {
     private final EmailSenderService senderService;
 
     @PostMapping("/resetPassword")
-    public String resetPassword(@RequestBody PasswordModel passwordModel,
-                                HttpServletRequest request) {
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordModel passwordModel,
+                                                HttpServletRequest request) {
         User user = userService.findUserByEmail(passwordModel.getEmail());
         String url = "";
         if (user != null) {
@@ -36,7 +37,7 @@ public class PasswordController {
             userService.createPasswordResetTokenForUser(user, token);
             url = passwordResetTokenMail(user, applicationUrl(request), token);
         }
-        return "Password reset mail sent successfully";
+        return ResponseEntity.ok("Password reset mail sent successfully");
     }
 
     @PostMapping("/savePassword")
