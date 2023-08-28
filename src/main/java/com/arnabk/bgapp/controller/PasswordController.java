@@ -3,6 +3,7 @@ package com.arnabk.bgapp.controller;
 import com.arnabk.bgapp.entity.User;
 import com.arnabk.bgapp.impl.EmailSenderService;
 import com.arnabk.bgapp.model.PasswordModel;
+import com.arnabk.bgapp.model.ResponseModel;
 import com.arnabk.bgapp.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,8 @@ public class PasswordController {
     private final EmailSenderService senderService;
 
     @PostMapping("/resetPassword")
-    public ResponseEntity<String> resetPassword(@RequestBody PasswordModel passwordModel,
-                                                HttpServletRequest request) {
+    public ResponseEntity<ResponseModel> resetPassword(@RequestBody PasswordModel passwordModel,
+                                                       HttpServletRequest request) {
         User user = userService.findUserByEmail(passwordModel.getEmail());
         String url = "";
         if (user != null) {
@@ -37,17 +38,17 @@ public class PasswordController {
             userService.createPasswordResetTokenForUser(user, token);
             url = passwordResetTokenMail(user, applicationUrl(request), token);
         }
-        return ResponseEntity.ok("Password reset mail sent successfully");
+        return ResponseEntity.ok(new ResponseModel("Password reset mail sent successfully", null));
     }
 
     @PostMapping("/savePassword")
-    public String savePassword(@RequestParam("token") String token,
+    public ResponseEntity<ResponseModel> savePassword(@RequestParam("token") String token,
                                @RequestBody PasswordModel passwordModel) {
 
         String result = userService.validatePasswordResetToken(token);
 
         if (!result.equalsIgnoreCase("valid")) {
-            return "Invalid Token";
+            return ResponseEntity.badRequest().body(new ResponseModel(null, "Invalid Token"));
         }
 
         // here the password reset token is valid
@@ -57,11 +58,12 @@ public class PasswordController {
             // change password
             userService.changePassword(user.get(), passwordModel.getNewPassword());
 
-            return "Password Reset Successful";
+            return ResponseEntity.ok(new ResponseModel("Password Reset Successful", null));
         } else {
             // invalidate token, please implement logic
 
-            return "Password Reset Token Invalidated";
+            return ResponseEntity.badRequest().body(
+                    new ResponseModel(null, "Password Reset Token Invalidated"));
         }
 
     }

@@ -7,6 +7,7 @@ import com.arnabk.bgapp.impl.EmailSenderService;
 import com.arnabk.bgapp.model.AuthenticationRequest;
 import com.arnabk.bgapp.model.AuthenticationResponse;
 import com.arnabk.bgapp.model.RegisterRequest;
+import com.arnabk.bgapp.model.ResponseModel;
 import com.arnabk.bgapp.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class RegistrationController {
     private final EmailSenderService senderService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest,
+    public ResponseEntity<ResponseModel> register(@RequestBody RegisterRequest registerRequest,
                                            final HttpServletRequest request) {
         User user = userService.verifyExistingUser(registerRequest.getEmail());
         if (user == null) {
@@ -45,25 +46,25 @@ public class RegistrationController {
                     applicationUrl(request)
             ));
 
-            return ResponseEntity.ok("Registration Successful");
+            return ResponseEntity.ok(new ResponseModel("Registration Successful", null));
         } else {
-            return ResponseEntity.badRequest().body("User already registered");
+            return ResponseEntity.badRequest().body(new ResponseModel(null, "User already registered"));
         }
     }
 
     @GetMapping("/verifyRegistration")
-    public ResponseEntity<String> verifyRegistration(@RequestParam(value = "token", required = true) String token) {
+    public ResponseEntity<ResponseModel> verifyRegistration(@RequestParam(value = "token", required = true) String token) {
         String result = userService.validateRegistrationToken(token);
 
         if (result.equalsIgnoreCase("valid")) {
-            return ResponseEntity.ok("User Verified successfully");
+            return ResponseEntity.ok(new ResponseModel("User Verified successfully", null));
         }
 
-        return ResponseEntity.badRequest().body("Bad User");
+        return ResponseEntity.badRequest().body(new ResponseModel(null, "Bad User"));
     }
 
     @GetMapping("/resendToken")
-    public ResponseEntity<String> resendVerificationToken(@RequestParam(value = "token", required = true) String oldToken,
+    public ResponseEntity<ResponseModel> resendVerificationToken(@RequestParam(value = "token", required = true) String oldToken,
                                           HttpServletRequest request) {
         User user = userService.findUserByToken(oldToken);
 
@@ -73,11 +74,11 @@ public class RegistrationController {
 
             resendVerificationTokenMail(user, applicationUrl(request), verificationToken);
 
-            return ResponseEntity.ok("Verification link sent");
+            return ResponseEntity.ok(new ResponseModel("Verification link sent", null));
         } else if (user != null && user.isEnabled()) {
-            return ResponseEntity.badRequest().body("User is already verified");
+            return ResponseEntity.badRequest().body(new ResponseModel(null, "User is already verified"));
         } else {
-            return ResponseEntity.badRequest().body("Please provide a valid token");
+            return ResponseEntity.badRequest().body(new ResponseModel(null, "Please provide a valid token"));
         }
     }
 
@@ -109,13 +110,16 @@ public class RegistrationController {
                 if (user.isEnabled()) {
                     return ResponseEntity.ok(userService.authenticate(request));
                 } else {
-                    return ResponseEntity.ok(new AuthenticationResponse("Please verify user email"));
+                    return ResponseEntity.badRequest().body(
+                            new ResponseModel(null, "Please verify user email"));
                 }
             } else {
-                return ResponseEntity.badRequest().body("Username or password not valid");
+                return ResponseEntity.badRequest().body(
+                        new ResponseModel(null, "Username or password not valid"));
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Username or password not valid");
+            return ResponseEntity.badRequest().body(
+                    new ResponseModel(null, "Username or password not valid"));
         }
 
     }
