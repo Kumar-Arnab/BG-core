@@ -11,7 +11,7 @@ import java.util.List;
 public interface SlokRepository extends JpaRepository<Sloka, String> {
 
     @Query("""
-            select s from Sloka s where s.chapterId like %:bgChId% order by s.verseNo
+            select s from Sloka s where s.chapterId like %:bgChId order by s.verseNo
             """)
     List<Sloka> findByChapterIdOrderByVerseNo(String bgChId);
 

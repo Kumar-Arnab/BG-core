@@ -21,6 +21,7 @@ public class PasswordResetToken {
 
     private String token;
 
+    @Column(name = "expiration_time", columnDefinition = "datetime")
     private Date expirationTime;
 
     @OneToOne(fetch = FetchType.EAGER)
